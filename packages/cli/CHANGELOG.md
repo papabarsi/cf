@@ -1,5 +1,29 @@
 # cf
 
+## 1.0.0-beta.19
+
+### Minor Changes
+
+- 6fdb573: Update the generated command surface for Forge OpenAPI release
+  `15656f084dd7a0ada54f8f659c749a7248254b9f`.
+- e290be1: Update the generated command surface for Forge OpenAPI release
+  `843eae2fbf4fe774ef9c91021dd34017ac9c970a`.
+- b191479: Update the generated command surface for Forge OpenAPI release
+  `dfab495170fee6a8af2746ed4d624db8f9fe688a`.
+- a602697: Update the generated command surface for Forge OpenAPI release
+  `e91e65be9898b6bc400231f36ce77e8e7d5a02ab`.
+- c6fdafc: Update the generated command surface for Forge OpenAPI release
+  `ec19e9f82e219137a547ca40f48babe71c69e481`.
+
+### Patch Changes
+
+- 30de18f: Fix generated flags for composed scalar request fields.
+
+  Preserve enum fields expressed through `allOf` and expose scalar unions without
+  turning numeric or boolean values into strings, including when a field is supplied
+  as a positional argument. Report validation operations as
+  validating rather than creating resources.
+
 ## 1.0.0-beta.18
 
 ### Minor Changes
