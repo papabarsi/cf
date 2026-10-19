@@ -46,6 +46,9 @@ RUN chmod +x /usr/local/bin/entrypoint.sh && mkdir -p /home/agent/.config && cho
 USER agent
 WORKDIR /work
 EXPOSE 8080
+# Meaningful in gateway mode (GATEWAY=1); a one-shot CLI container exits before the first probe.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.GATEWAY_PORT||8080)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 # Default: run the CLI. `docker run cf dns records list -z example.com`
 # `docker run -e GATEWAY=1 -p 8080:8080 cf` starts the HTTP gateway instead.

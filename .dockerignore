@@ -6,3 +6,7 @@ node_modules
 .opencode
 *.tgz
 .wrangler
+.env*
+*.pem
+*.key
+coverage

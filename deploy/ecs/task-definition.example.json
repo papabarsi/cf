@@ -1,44 +1,104 @@
 {
   "family": "cf-agent-gateway",
-  "requiresCompatibilities": ["FARGATE"],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
   "networkMode": "awsvpc",
   "cpu": "256",
   "memory": "512",
-  "runtimePlatform": { "operatingSystemFamily": "LINUX", "cpuArchitecture": "X86_64" },
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX",
+    "cpuArchitecture": "X86_64"
+  },
   "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::123456789012:role/cf-agent-gateway-task",
   "containerDefinitions": [
     {
       "name": "cf",
-      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/cf-agent:latest",
+      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/cf-agent@sha256:<image-digest>",
       "essential": true,
-      "portMappings": [{ "containerPort": 8080, "protocol": "tcp", "name": "http" }],
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp",
+          "name": "http"
+        }
+      ],
       "environment": [
-        { "name": "GATEWAY", "value": "1" },
-        { "name": "GATEWAY_WRITE_ENABLED", "value": "0" },
-        { "name": "CF_TELEMETRY_DISABLED", "value": "1" }
+        {
+          "name": "GATEWAY",
+          "value": "1"
+        },
+        {
+          "name": "GATEWAY_WRITE_ENABLED",
+          "value": "0"
+        },
+        {
+          "name": "CF_TELEMETRY_DISABLED",
+          "value": "1"
+        }
       ],
       "secrets": [
-        { "name": "CLOUDFLARE_API_TOKEN",  "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/cloudflare:CLOUDFLARE_API_TOKEN::" },
-        { "name": "CLOUDFLARE_ACCOUNT_ID", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/cloudflare:CLOUDFLARE_ACCOUNT_ID::" },
-        { "name": "GATEWAY_TOKEN",         "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/gateway:GATEWAY_TOKEN::" }
+        {
+          "name": "CLOUDFLARE_API_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/cloudflare:CLOUDFLARE_API_TOKEN::"
+        },
+        {
+          "name": "CLOUDFLARE_ACCOUNT_ID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/cloudflare:CLOUDFLARE_ACCOUNT_ID::"
+        },
+        {
+          "name": "GATEWAY_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cf-agent/gateway:GATEWAY_TOKEN::"
+        }
       ],
       "healthCheck": {
-        "command": ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""],
-        "interval": 30, "timeout": 5, "retries": 3, "startPeriod": 10
+        "command": [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
       },
-      "readonlyRootFilesystem": false,
+      "readonlyRootFilesystem": true,
       "user": "10001:10001",
-      "linuxParameters": { "initProcessEnabled": false },
+      "linuxParameters": {
+        "initProcessEnabled": false,
+        "capabilities": {
+          "drop": [
+            "ALL"
+          ]
+        }
+      },
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/cf-agent-gateway",
           "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "cf",
-          "awslogs-create-group": "true"
+          "awslogs-stream-prefix": "cf"
         }
-      }
+      },
+      "mountPoints": [
+        {
+          "sourceVolume": "cache",
+          "containerPath": "/home/agent/.config",
+          "readOnly": false
+        },
+        {
+          "sourceVolume": "tmp",
+          "containerPath": "/tmp",
+          "readOnly": false
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "cache"
+    },
+    {
+      "name": "tmp"
     }
   ]
 }

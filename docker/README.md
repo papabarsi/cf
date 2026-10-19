@@ -36,14 +36,16 @@ docker run -d -p 8080:8080 -e GATEWAY=1 -e GATEWAY_TOKEN=… \
 
 | route | purpose |
 |---|---|
-| `POST /run` `{"args":["dns","records","list","-z","example.com"],"stdin":"","timeoutMs":60000}` | spawn `cf` with that argv (no shell); returns `{ok, exitCode, stdout, stderr, result?, durationMs, classification}` |
-| `GET /tools` | `cf tools` output (MCP-style tool definitions), cached |
+| `POST /run` `{"args":["dns","records","list","-z","example.com"],"stdin":"","timeoutMs":60000}` | spawn `cf` with that argv (no shell); returns `{ok, exitCode, stdout, stderr, durationMs, truncated, classification}` |
+| `GET /tools` | `cf tools` output (MCP-style tool definitions) |
 | `GET /healthz` | liveness (unauthenticated) |
 
 Rules baked into `docker/agent-gateway/server.mjs`:
 
-- Every request except `/healthz` needs `Authorization: Bearer $GATEWAY_TOKEN`. The gateway
-  refuses to start without a token unless `GATEWAY_ALLOW_UNAUTH=1` (local dev only).
+- Every request except `/healthz` needs `Authorization: Bearer $GATEWAY_TOKEN` (at least 32
+  characters). The gateway refuses to start without one unless `GATEWAY_ALLOW_UNAUTH=1` (local dev only).
+- The child CLI gets an allow-listed environment only (never `GATEWAY_*`), at most
+  `GATEWAY_MAX_CONCURRENCY` (4) run at once, and responses carry raw `stdout` (no parsed `result`).
 - **Read-only by default.** An argv whose command words contain a mutating verb
   (`create`, `update`, `delete`, `purge`, `deploy`, …) or `--force` is rejected with 403 unless
   it carries `--dry-run` or the gateway runs with `GATEWAY_WRITE_ENABLED=1`.
